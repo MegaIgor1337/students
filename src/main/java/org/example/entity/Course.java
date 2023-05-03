@@ -26,11 +26,16 @@ public class Course {
 
     @Builder.Default
     @ToString.Exclude
-    @ManyToMany(mappedBy = "courses")
-    private List<Trainer> trainers = new ArrayList<>();
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<TrainerCourse> trainerCourses = new ArrayList<>();
 
     public void addStudent(Student student) {
         students.add(student);
         student.setCourse(this);
+    }
+
+    public void addTrainerCourse(TrainerCourse trainerCourse) {
+        this.trainerCourses.add(trainerCourse);
+        trainerCourse.setCourse(this);
     }
 }

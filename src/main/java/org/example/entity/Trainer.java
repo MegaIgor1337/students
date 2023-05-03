@@ -20,15 +20,12 @@ public class Trainer {
     private String name;
     private int experience;
     @Builder.Default
-    @ToString.Exclude
-    @ManyToMany
-    @JoinTable(name = "trainer_course",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "trainer_id"))
-    private List<Course> courses = new ArrayList<>();
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
+    private List<TrainerCourse> trainerCourses = new ArrayList<>();
 
-    public void addCourse(Course course) {
-        courses.add(course);
-        course.getTrainers().add(this);
+
+    public void addTrainerCourse(TrainerCourse trainerCourse) {
+        this.trainerCourses.add(trainerCourse);
+        trainerCourse.setTrainer(this);
     }
 }

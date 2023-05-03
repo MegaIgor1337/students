@@ -1,13 +1,11 @@
 package org.example;
 
 import lombok.Cleanup;
-import org.example.entity.Course;
-import org.example.entity.Student;
-import org.example.entity.StudentProfile;
-import org.example.entity.Trainer;
+import org.example.entity.*;
 import org.hibernate.cfg.Configuration;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,28 +105,20 @@ public class HibernateTest {
     public void addTrainer() {
         Configuration configuration = new Configuration();
         configuration.configure();
-
-        Course course1 = Course.builder()
-                .name("Java Enterprise")
-                .build();
-
-        Course course2 = Course.builder()
-                .name("Java Web")
-                .build();
-        Trainer trainer = Trainer.builder()
-                .name("Andrey")
-                .experience(5)
-                .build();
-
         @Cleanup var sessionFactory = configuration.buildSessionFactory();
         @Cleanup var session = sessionFactory.openSession();
         session.beginTransaction();
-
-        session.save(course1);
-        trainer.addCourse(course1);
+        var trainer = Trainer.builder()
+                .name("Andrey")
+                .experience(5)
+                .build();
+        var course = Course.builder().name("Java Web").build();
         session.save(trainer);
-
-
+        session.persist(course);
+        TrainerCourse trainerCourse = TrainerCourse.builder()
+                .date(Instant.now()).build();
+        trainer.addTrainerCourse(trainerCourse);
+        course.addTrainerCourse(trainerCourse);
         session.getTransaction().commit();
     }
 
@@ -146,11 +136,8 @@ public class HibernateTest {
                 .stream()
                 .filter(it -> it.getName().equals("Java Enterprise"))
                 .toList().get(0);
-        Trainer trainer = session.createQuery("FROM Trainer ", Trainer.class).getResultList()
-                .stream()
-                .filter(it -> it.getName().equals("Alexander") && it.getExperience() == 4)
-                .toList().get(0);
-        course.getTrainers().add(trainer);
+        course.setName("Java Web");
+        session.saveOrUpdate(course);
         session.getTransaction().commit();
     }
 
