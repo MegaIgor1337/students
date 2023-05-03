@@ -12,18 +12,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ToString(exclude = "students")
 public class Course {
     @Id
+    @EqualsAndHashCode.Include
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String course;
+    private String name;
     @Builder.Default
+    @ToString.Exclude
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Student> students = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Trainer trainer;
+
+    @Builder.Default
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "courses")
+    private List<Trainer> trainers = new ArrayList<>();
 
     public void addStudent(Student student) {
         students.add(student);

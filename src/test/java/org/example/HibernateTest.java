@@ -8,6 +8,7 @@ import org.example.entity.Trainer;
 import org.hibernate.cfg.Configuration;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +30,7 @@ public class HibernateTest {
                 .createQuery("FROM Student ", Student.class)
                 .getResultList()
                 .stream()
-                .filter(it -> it.getCourse().getCourse().equals("Java Enterprise"))
+                .filter(it -> it.getCourse().getName().equals("Java Enterprise"))
                 .toList();
         session.getTransaction().commit();
         System.out.println(studentsOnJavaEnterprise);
@@ -62,7 +63,7 @@ public class HibernateTest {
                 .name("Petr")
                 .course(
                         Course.builder()
-                                .course("Java Enterprise")
+                                .name("Java Enterprise")
                                 .build()
                 )
                 .build();
@@ -76,7 +77,7 @@ public class HibernateTest {
         session.beginTransaction();
         Course course = session.createQuery(" FROM Course ", Course.class).getResultList()
                 .stream()
-                .filter(it -> it.getCourse().equals("Java Enterprise"))
+                .filter(it -> it.getName().equals("Java Enterprise"))
                 .toList().get(0);
         course.addStudent(student);
         studentProfile.setStudent(student);
@@ -95,7 +96,7 @@ public class HibernateTest {
         session.beginTransaction();
         Course course = session.createQuery(" FROM Course ", Course.class).getResultList()
                 .stream()
-                .filter(it -> it.getCourse().equals("Java Enterprise"))
+                .filter(it -> it.getName().equals("Java Enterprise"))
                 .toList().get(0);
         session.delete(course);
         session.getTransaction().commit();
@@ -106,24 +107,28 @@ public class HibernateTest {
     public void addTrainer() {
         Configuration configuration = new Configuration();
         configuration.configure();
+
+        Course course1 = Course.builder()
+                .name("Java Enterprise")
+                .build();
+
+        Course course2 = Course.builder()
+                .name("Java Web")
+                .build();
         Trainer trainer = Trainer.builder()
                 .name("Andrey")
                 .experience(5)
                 .build();
-        Course course1 = Course.builder()
-                .course("Java Enterprise")
-                .build();
 
-        Course course2 = Course.builder()
-                .course("Java Web")
-                .build();
         @Cleanup var sessionFactory = configuration.buildSessionFactory();
         @Cleanup var session = sessionFactory.openSession();
         session.beginTransaction();
-        session.persist(trainer);
-        System.out.println(trainer);
+
+        session.save(course1);
         trainer.addCourse(course1);
-        trainer.addCourse(course2);
+        session.save(trainer);
+
+
         session.getTransaction().commit();
     }
 
@@ -139,15 +144,14 @@ public class HibernateTest {
         session.beginTransaction();
         course = session.createQuery(" FROM Course ", Course.class).getResultList()
                 .stream()
-                .filter(it -> it.getCourse().equals("Java Enterprise"))
+                .filter(it -> it.getName().equals("Java Enterprise"))
                 .toList().get(0);
         Trainer trainer = session.createQuery("FROM Trainer ", Trainer.class).getResultList()
                 .stream()
                 .filter(it -> it.getName().equals("Alexander") && it.getExperience() == 4)
                 .toList().get(0);
-        course.setTrainer(trainer);
+        course.getTrainers().add(trainer);
         session.getTransaction().commit();
-       assertEquals("Alexander", course.getTrainer().getName());
     }
 
     @Test
@@ -159,7 +163,7 @@ public class HibernateTest {
         session.beginTransaction();
         Course course = session.createQuery(" FROM Course ", Course.class).getResultList()
                 .stream()
-                .filter(it -> it.getCourse().equals("Java Web"))
+                .filter(it -> it.getName().equals("Java Web"))
                 .toList().get(0);
         session.delete(course);
         session.getTransaction().commit();

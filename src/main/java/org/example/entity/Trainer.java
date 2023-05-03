@@ -12,19 +12,23 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString(exclude = "courses")
 public class Trainer {
     @Id
+    @EqualsAndHashCode.Include
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private int experience;
     @Builder.Default
-    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @ManyToMany
+    @JoinTable(name = "trainer_course",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainer_id"))
     private List<Course> courses = new ArrayList<>();
 
     public void addCourse(Course course) {
-        this.courses.add(course);
-        course.setTrainer(this);
+        courses.add(course);
+        course.getTrainers().add(this);
     }
 }
